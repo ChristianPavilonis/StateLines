@@ -364,6 +364,13 @@ class Homestead
                             ]
                         end
                     end
+                    if wordpress.has_key?("plugins")
+                        plugins = wordpress["plugins"]
+                        config.vm.provision "shell" do |s|
+                            s.path = scriptDir + "/install-wordpress-plugins.sh"
+                            s.args = [site["to"], plugins]
+                        end
+                    end
                 end
             end
         end
