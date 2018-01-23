@@ -371,6 +371,15 @@ class Homestead
                             s.args = [site["to"], plugins]
                         end
                     end
+                    if wordpress.has_key?("plugins_from_archive") && settings.has_key?("plugins_archive")
+                        plugins = wordpress["plugins_from_archive"]
+                        config.vm.provision "shell" do |s|
+                            s.path = scriptDir + "/install-wordpress-plugins-from-archive.sh"
+                            s.args = [site["to"],
+                            plugins,
+                            settings["plugins_archive"]]
+                        end
+                    end
                 end
             end
         end
