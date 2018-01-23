@@ -1,0 +1,36 @@
+---
+ip: "192.168.33.10"
+memory: 2048
+cpus: 1
+provider: virtualbox
+
+authorize: ~/.ssh/id_rsa.pub
+
+keys:
+    - ~/.ssh/id_rsa
+
+folders:
+    - map: ~/code
+      to: /home/vagrant/sites/statelines
+
+sites:
+    - map: state.lines
+      to: /home/vagrant/sites/statelines
+      wordpress:
+          - version: latest
+            use_db: statelines
+            prefix: wp_
+            title: State Lines
+            admin:
+              - username: admin
+                password: secret
+                email: admin@example.com
+                fname: ""
+                lname: ""
+
+yarn: true
+
+databases:
+    - statelines
+
+
