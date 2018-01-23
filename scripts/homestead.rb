@@ -10,10 +10,10 @@ class Homestead
         config.ssh.forward_agent = true
 
         # Configure The Box
-        config.vm.define settings["name"] ||= "homestead-7"
+        config.vm.define settings["name"] ||= "custom-homestead"
         config.vm.box = settings["box"] ||= "laravel/homestead"
         config.vm.box_version = settings["version"] ||= ">= 4.0.0"
-        config.vm.hostname = settings["hostname"] ||= "homestead"
+        config.vm.hostname = settings["hostname"] ||= "custom-homestead"
 
         # Configure A Private Network IP
         if settings["ip"] != "autonetwork"
@@ -184,120 +184,21 @@ class Homestead
         config.vm.provision "shell" do |s|
             s.path = scriptDir + "/clear-nginx.sh"
         end
-
-        if settings.include? 'sites'
-            settings["sites"].each do |site|
-
-                # Create SSL certificate
-                config.vm.provision "shell" do |s|
-                    s.name = "Creating Certificate: " + site["map"]
-                    s.path = scriptDir + "/create-certificate.sh"
-                    s.args = [site["map"]]
-                end
-
-                type = site["type"] ||= "laravel"
-
-                if (type == "symfony")
-                    type = "symfony2"
-                end
-
-                config.vm.provision "shell" do |s|
-                    s.name = "Creating Site: " + site["map"]
-                    if site.include? 'params'
-                        params = "("
-                        site["params"].each do |param|
-                            params += " [" + param["key"] + "]=" + param["value"]
-                        end
-                        params += " )"
-                    end
-                    s.path = scriptDir + "/serve-#{type}.sh"
-                    s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443", site["php"] ||= "7.2", params ||= "", site["zray"] ||= "false"]
-
-                    if site["zray"] == 'true'
-                        config.vm.provision "shell" do |s|
-                            s.inline = "ln -sf /opt/zray/gui/public " + site["to"] + "/ZendServer"
-                        end
-                    else
-                        config.vm.provision "shell" do |s|
-                            s.inline = "rm -rf " + site["to"] + "/ZendServer"
-                        end
-                    end
-                end
-
-                # Configure The Cron Schedule
-                if (site.has_key?("schedule"))
-                    config.vm.provision "shell" do |s|
-                        s.name = "Creating Schedule"
-
-                        if (site["schedule"])
-                            s.path = scriptDir + "/cron-schedule.sh"
-                            s.args = [site["map"].tr('^A-Za-z0-9', ''), site["to"]]
-                        else
-                            s.inline = "rm -f /etc/cron.d/$1"
-                            s.args = [site["map"].tr('^A-Za-z0-9', '')]
-                        end
-                    end
-                else
-                    config.vm.provision "shell" do |s|
-                        s.name = "Checking for old Schedule"
-                        s.inline = "rm -f /etc/cron.d/$1"
-                        s.args = [site["map"].tr('^A-Za-z0-9', '')]
-                    end
-                end
-            end
-        end
-
-        # Configure All Of The Server Environment Variables
+        
+        # Install WPCli
         config.vm.provision "shell" do |s|
-            s.name = "Clear Variables"
-            s.path = scriptDir + "/clear-variables.sh"
+            s.path = scriptDir + "/install-wpcli.sh"
         end
 
-        if settings.has_key?("variables")
-            settings["variables"].each do |var|
-                config.vm.provision "shell" do |s|
-                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/5.6/fpm/pool.d/www.conf"
-                    s.args = [var["key"], var["value"]]
-                end
-
-                config.vm.provision "shell" do |s|
-                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.0/fpm/pool.d/www.conf"
-                    s.args = [var["key"], var["value"]]
-                end
-
-                config.vm.provision "shell" do |s|
-                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.1/fpm/pool.d/www.conf"
-                    s.args = [var["key"], var["value"]]
-                end
-
-                config.vm.provision "shell" do |s|
-                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.2/fpm/pool.d/www.conf"
-                    s.args = [var["key"], var["value"]]
-                end
-
-                config.vm.provision "shell" do |s|
-                    s.inline = "echo \"\n# Set Homestead Environment Variable\nexport $1=$2\" >> /home/vagrant/.profile"
-                    s.args = [var["key"], var["value"]]
-                end
-            end
-
+        # Install Yarn
+        if settings.has_key?("yarn") && settings["yarn"]
             config.vm.provision "shell" do |s|
-                s.inline = "service php5.6-fpm restart; service php7.0-fpm restart; service php7.1-fpm restart; service php7.2-fpm restart;"
+                s.path = scriptDir + "/install-yarn.sh"
             end
         end
 
-        config.vm.provision "shell" do |s|
-            s.name = "Restarting Cron"
-            s.inline = "sudo service cron restart"
-        end
-
-        config.vm.provision "shell" do |s|
-            s.name = "Restarting Nginx"
-            s.inline = "sudo service nginx restart; sudo service php5.6-fpm restart; sudo service php7.0-fpm restart; sudo service php7.1-fpm restart; sudo service php7.2-fpm restart"
-        end
-
-        # Install MariaDB If Necessary
-        if settings.has_key?("mariadb") && settings["mariadb"]
+         # Install MariaDB If Necessary
+         if settings.has_key?("mariadb") && settings["mariadb"]
             config.vm.provision "shell" do |s|
                 s.path = scriptDir + "/install-maria.sh"
             end
@@ -360,6 +261,138 @@ class Homestead
                     end
                 end
             end
+        end
+
+        if settings.include? 'sites'
+            settings["sites"].each do |site|
+
+                # Create SSL certificate
+                config.vm.provision "shell" do |s|
+                    s.name = "Creating Certificate: " + site["map"]
+                    s.path = scriptDir + "/create-certificate.sh"
+                    s.args = [site["map"]]
+                end
+
+                type = site["type"] ||= "laravel"
+
+                if (type == "symfony")
+                    type = "symfony2"
+                end
+
+                config.vm.provision "shell" do |s|
+                    s.name = "Creating Site: " + site["map"]
+                    if site.include? 'params'
+                        params = "("
+                        site["params"].each do |param|
+                            params += " [" + param["key"] + "]=" + param["value"]
+                        end
+                        params += " )"
+                    end
+                    s.path = scriptDir + "/serve-#{type}.sh"
+                    s.args = [site["map"], site["to"], site["port"] ||= "80", site["ssl"] ||= "443", site["php"] ||= "7.2", params ||= "", site["zray"] ||= "false"]
+
+                    if site["zray"] == 'true'
+                        config.vm.provision "shell" do |s|
+                            s.inline = "ln -sf /opt/zray/gui/public " + site["to"] + "/ZendServer"
+                        end
+                    else
+                        config.vm.provision "shell" do |s|
+                            s.inline = "rm -rf " + site["to"] + "/ZendServer"
+                        end
+                    end
+                end
+
+                # Configure The Cron Schedule
+                if (site.has_key?("schedule"))
+                    config.vm.provision "shell" do |s|
+                        s.name = "Creating Schedule"
+
+                        if (site["schedule"])
+                            s.path = scriptDir + "/cron-schedule.sh"
+                            s.args = [site["map"].tr('^A-Za-z0-9', ''), site["to"]]
+                        else
+                            s.inline = "rm -f /etc/cron.d/$1"
+                            s.args = [site["map"].tr('^A-Za-z0-9', '')]
+                        end
+                    end
+                else
+                    config.vm.provision "shell" do |s|
+                        s.name = "Checking for old Schedule"
+                        s.inline = "rm -f /etc/cron.d/$1"
+                        s.args = [site["map"].tr('^A-Za-z0-9', '')]
+                    end
+                end
+                
+                #Configure Wordpress Sites
+                if (site.has_key?("wordpress"))
+                    wordpress = site["wordpress"].first;
+                    admin = wordpress["admin"].first;
+                    config.vm.provision "shell" do |s|
+                        s.path = scriptDir + "/wordpress-setup.sh"
+                        s.args = [
+                            site["map"],
+                            site["to"],
+                            wordpress["version"] || "latest",
+                            wordpress["use_db"], site["prefix"] || "wp_",
+                            wordpress["title"] || "State Lines",
+                            admin["username"] || "admin",
+                            admin["password"] || "secret",
+                            admin["email"] || "admin@example.com",
+                            admin["fname"] || "",
+                            admin["lname"] || ""
+                        ]
+                    end
+                end
+            end
+        end
+
+        # Configure All Of The Server Environment Variables
+        config.vm.provision "shell" do |s|
+            s.name = "Clear Variables"
+            s.path = scriptDir + "/clear-variables.sh"
+        end
+
+        if settings.has_key?("variables")
+            settings["variables"].each do |var|
+                config.vm.provision "shell" do |s|
+                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/5.6/fpm/pool.d/www.conf"
+                    s.args = [var["key"], var["value"]]
+                end
+
+                config.vm.provision "shell" do |s|
+                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.0/fpm/pool.d/www.conf"
+                    s.args = [var["key"], var["value"]]
+                end
+
+                config.vm.provision "shell" do |s|
+                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.1/fpm/pool.d/www.conf"
+                    s.args = [var["key"], var["value"]]
+                end
+
+                config.vm.provision "shell" do |s|
+                    s.inline = "echo \"\nenv[$1] = '$2'\" >> /etc/php/7.2/fpm/pool.d/www.conf"
+                    s.args = [var["key"], var["value"]]
+                end
+
+                config.vm.provision "shell" do |s|
+                    s.inline = "echo \"\n# Set Homestead Environment Variable\nexport $1=$2\" >> /home/vagrant/.profile"
+                    s.args = [var["key"], var["value"]]
+                end
+            end
+
+            config.vm.provision "shell" do |s|
+                s.inline = "service php5.6-fpm restart; service php7.0-fpm restart; service php7.1-fpm restart; service php7.2-fpm restart;"
+            end
+        end
+
+        config.vm.provision "shell" do |s|
+            s.name = "Restarting Cron"
+            s.inline = "sudo service cron restart"
+        end
+
+        config.vm.provision "shell" do |s|
+            s.name = "Restarting Nginx"
+            s.inline = "sudo service nginx restart; sudo service php5.6-fpm restart; sudo service php7.0-fpm restart; sudo service php7.1-fpm restart; sudo service php7.2-fpm restart"
         end
 
         # Update Composer On Every Provision
