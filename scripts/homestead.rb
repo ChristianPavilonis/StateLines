@@ -190,7 +190,7 @@ class Homestead
             s.path = scriptDir + "/install-wpcli.sh"
         end
 
-        # Install Yarn
+        # Install Yarn If Necessary
         if settings.has_key?("yarn") && settings["yarn"]
             config.vm.provision "shell" do |s|
                 s.path = scriptDir + "/install-yarn.sh"
@@ -333,7 +333,8 @@ class Homestead
                             site["map"],
                             site["to"],
                             wordpress["version"] || "latest",
-                            wordpress["use_db"], site["prefix"] || "wp_",
+                            wordpress["use_db"],
+                            wordpress["prefix"] || "wp_",
                             wordpress["title"] || "State Lines",
                             admin["username"] || "admin",
                             admin["password"] || "secret",

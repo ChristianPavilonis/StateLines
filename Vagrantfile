@@ -7,8 +7,8 @@ require 'yaml'
 VAGRANTFILE_API_VERSION ||= "2"
 confDir = $confDir ||= File.expand_path(File.dirname(__FILE__))
 
-homesteadYamlPath = confDir + "/Homestead.yaml"
-homesteadJsonPath = confDir + "/Homestead.json"
+stateYamlPath = confDir + "/State.yaml"
+stateJsonPath = confDir + "/State.json"
 afterScriptPath = confDir + "/after.sh"
 aliasesPath = confDir + "/aliases"
 
@@ -24,15 +24,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         end
     end
 
-    if File.exist? homesteadYamlPath then
-        settings = YAML::load(File.read(homesteadYamlPath))
-    elsif File.exist? homesteadJsonPath then
-        settings = JSON::parse(File.read(homesteadJsonPath))
+    if File.exist? stateYamlPath then
+        settings = YAML::load(File.read(stateYamlPath))
+    elsif File.exist? stateJsonPath then
+        settings = JSON::parse(File.read(stateJsonPath))
     else
-        abort "Homestead settings file not found in #{confDir}"
+        abort "StateLines settings file not found in #{confDir}"
     end
 
-    Homestead.configure(config, settings)
+    State.configure(config, settings)
 
     if File.exist? afterScriptPath then
         config.vm.provision "shell", path: afterScriptPath, privileged: false, keep_color: true
