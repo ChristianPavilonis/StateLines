@@ -26,10 +26,7 @@
                 "admin":
                 {
                     "username": "admin",
-                    "password": "secret",
-                    "email": "admin@example.com",
-                    "fname": "",
-                    "lname": ""
+                    "password": "secret"
                 }
             }
         }

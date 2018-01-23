@@ -24,9 +24,6 @@ sites:
             admin:
               - username: admin
                 password: secret
-                email: admin@example.com
-                fname: ""
-                lname: ""
 
 yarn: true
 

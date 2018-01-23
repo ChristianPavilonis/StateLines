@@ -10,10 +10,10 @@ class Homestead
         config.ssh.forward_agent = true
 
         # Configure The Box
-        config.vm.define settings["name"] ||= "custom-homestead"
+        config.vm.define settings["name"] ||= "StateLines"
         config.vm.box = settings["box"] ||= "laravel/homestead"
         config.vm.box_version = settings["version"] ||= ">= 4.0.0"
-        config.vm.hostname = settings["hostname"] ||= "custom-homestead"
+        config.vm.hostname = settings["hostname"] ||= "StateLines"
 
         # Configure A Private Network IP
         if settings["ip"] != "autonetwork"
@@ -328,7 +328,7 @@ class Homestead
                     wordpress = site["wordpress"].first;
                     admin = wordpress["admin"].first;
                     config.vm.provision "shell" do |s|
-                        s.path = scriptDir + "/wordpress-setup.sh"
+                        s.path = scriptDir + "/install-wordpress-core.sh"
                         s.args = [
                             site["map"],
                             site["to"],
@@ -336,12 +336,33 @@ class Homestead
                             wordpress["use_db"],
                             wordpress["prefix"] || "wp_",
                             wordpress["title"] || "State Lines",
+                            wordpress["locale"] || "en_US",
                             admin["username"] || "admin",
-                            admin["password"] || "secret",
-                            admin["email"] || "admin@example.com",
-                            admin["fname"] || "",
-                            admin["lname"] || ""
+                            admin["password"] || "secret"
                         ]
+                    end
+                    if wordpress.has_key?("theme")
+                        theme = wordpress["theme"].first
+                        if(theme.has_key?("repo"))
+                            config.vm.provision "shell" do |s|
+                                s.path = scriptDir + "/clone-wordpress-theme.sh"
+                                s.args = [
+                                    site["to"],
+                                    theme["repo"],
+                                    theme["name"]
+                                ]
+                            end
+                        end
+                        else
+                        config.vm.provision "shell" do |s|
+                            s.path = scriptDir + "/install-wordpress-theme.sh"
+                            s.args = [
+                                site["to"],
+                                theme["url"],
+                                theme["name"],
+                                theme["rename"]
+                            ]
+                        end
                     end
                 end
             end
