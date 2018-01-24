@@ -24,6 +24,9 @@ sites:
             admin:
               - username: admin
                 password: secret
+            theme: 
+                - repo: https://github.com/roots/sage.git
+                  name: sage
 
 yarn: true
 
