@@ -341,6 +341,16 @@ class Homestead
                             admin["password"] || "secret"
                         ]
                     end
+                    if wordpress.has_key?("import_db")
+                        config.vm.provision "shell" do |s|
+                            s.path = scriptDir + "/import-wordpress-db.sh"
+                            s.args = [
+                                site["to"],
+                                wordpress["import_db"],
+                                settings["sql_archive"]
+                        ]
+                        end
+                    end
                     if wordpress.has_key?("theme")
                         theme = wordpress["theme"].first
                         if(theme.has_key?("repo"))
@@ -363,6 +373,11 @@ class Homestead
                                 theme["rename"]
                             ]
                         end
+                        if theme.has_key?("remove_default") && theme["remove_default"] == true
+                            config.vm.provision "shell" do |s|
+                                s.path = scriptDir + "delete-default-wordpress-themes.sh"
+                            end
+                        end
                     end
                     if wordpress.has_key?("plugins")
                         plugins = wordpress["plugins"]
@@ -371,13 +386,13 @@ class Homestead
                             s.args = [site["to"], plugins]
                         end
                     end
-                    if wordpress.has_key?("plugins_from_archive") && settings.has_key?("plugins_archive")
-                        plugins = wordpress["plugins_from_archive"]
+                    if wordpress.has_key?("plugins_from_library") && settings.has_key?("plugins_library")
+                        plugins = wordpress["plugins_from_library"]
                         config.vm.provision "shell" do |s|
-                            s.path = scriptDir + "/install-wordpress-plugins-from-archive.sh"
+                            s.path = scriptDir + "/install-wordpress-plugins-from-library.sh"
                             s.args = [site["to"],
                             plugins,
-                            settings["plugins_archive"]]
+                            settings["plugins_library"]]
                         end
                     end
                 end
