@@ -347,7 +347,9 @@ class Homestead
                             s.args = [
                                 site["to"],
                                 wordpress["import_db"],
-                                settings["sql_archive"]
+                                settings["sql_archive"],
+                                admin["username"] || "admin",
+                                admin["password"] || "secret"
                         ]
                         end
                     end
@@ -363,16 +365,16 @@ class Homestead
                                 ]
                             end
                         end
-                        else
-                        config.vm.provision "shell" do |s|
-                            s.path = scriptDir + "/install-wordpress-theme.sh"
-                            s.args = [
-                                site["to"],
-                                theme["url"],
-                                theme["name"],
-                                theme["rename"]
-                            ]
-                        end
+                        # else
+                        # config.vm.provision "shell" do |s|
+                        #     s.path = scriptDir + "/install-wordpress-theme.sh"
+                        #     s.args = [
+                        #         site["to"],
+                        #         theme["url"],
+                        #         theme["name"],
+                        #         theme["rename"]
+                        #     ]
+                        # end
                         if theme.has_key?("remove_default") && theme["remove_default"] == true
                             config.vm.provision "shell" do |s|
                                 s.path = scriptDir + "delete-default-wordpress-themes.sh"
