@@ -348,9 +348,16 @@ class Homestead
                                 site["to"],
                                 wordpress["import_db"],
                                 settings["sql_archive"],
+                        ]
+                        end
+                        config.vm.provision "shell" do |s|
+                            s.path = scriptDir + "/reset-wordpress-settings.sh"
+                            s.args = [
+                                site["to"],
+                                site["map"],
                                 admin["username"] || "admin",
                                 admin["password"] || "secret"
-                        ]
+                            ]
                         end
                     end
                     if wordpress.has_key?("theme")
