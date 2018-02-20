@@ -11,8 +11,8 @@ class Homestead
 
         # Configure The Box
         config.vm.define settings["name"] ||= "StateLines"
-        config.vm.box = settings["box"] ||= "laravel/homestead"
-        config.vm.box_version = settings["version"] ||= ">= 4.0.0"
+        config.vm.box = settings["box"] ||= "tissythesavior/statelines"
+        config.vm.box_version = settings["version"] ||= ">= 0.0.1"
         config.vm.hostname = settings["hostname"] ||= "StateLines"
 
         # Configure A Private Network IP
