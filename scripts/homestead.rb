@@ -384,7 +384,7 @@ class Homestead
                         # end
                         if theme.has_key?("remove_default") && theme["remove_default"] == true
                             config.vm.provision "shell" do |s|
-                                s.path = scriptDir + "delete-default-wordpress-themes.sh"
+                                s.path = scriptDir + "/delete-default-wordpress-themes.sh"
                             end
                         end
                     end
