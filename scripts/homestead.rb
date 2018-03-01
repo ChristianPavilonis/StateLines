@@ -11,7 +11,7 @@ class Homestead
 
         # Configure The Box
         config.vm.define settings["name"] ||= "StateLines"
-        config.vm.box = settings["box"] ||= "tissythesavior/statelines"
+        config.vm.box = settings["box"] ||= "TissyTheSavior/StateLines"
         config.vm.box_version = settings["version"] ||= ">= 0.0.1"
         config.vm.hostname = settings["hostname"] ||= "StateLines"
 
