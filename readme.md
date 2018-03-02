@@ -29,7 +29,7 @@ Quick start Guide
    The synced folders sync a folder from your machine to your virtual machine.
    
    `map` is where your project code will be
-4.a Configure your site
+4. Configure your site
    ```
    sites:
        - map: state.lines
@@ -39,28 +39,6 @@ Quick start Guide
    
    `to` is the same directory of what you set in step 3
    
-4.b Configure Wordpress
-   ```
-   wordpress:
-          - version: latest
-            use_db: statelines
-            prefix: wp_
-            title: State Lines
-            admin:
-                - username: admin
-                  password: secret
-            theme: 
-                - repo: https://github.com/roots/sage.git
-                  name: sage
-   ```
-   Inside of your site you will configure wordpress
-   
-   You can specify your version, your table prefix, title, admin username and password
-   
-   `use_db` specifies what database that site will use, and later we'll set up our databases
-   
-   Under theme you can set the repo you want to clone and the name the theme folder.
-   
 5. Lastly you will specify your databases
    ```
    databases:
@@ -68,3 +46,6 @@ Quick start Guide
    ```
    Just name your database, you can ad as many as you want.
 6. Now you can just run the command `vagrant up`
+
+Notes:
+ - if you make changes to State.yaml like adding a site run `vagrant reload --provision`
